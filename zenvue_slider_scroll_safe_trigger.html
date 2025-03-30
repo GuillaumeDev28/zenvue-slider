@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ZenVue Slider - Déclenchement sécurisé</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      font-family: sans-serif;
+    }
+    section {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2em;
+    }
+    .slider-section {
+      position: relative;
+      height: 851px;
+    }
+    .container {
+      position: absolute;
+      top: 300px;
+      width: 980px;
+      height: 551px;
+      left: 50%;
+      transform: translateX(-50%);
+      overflow: hidden;
+      border: 2px solid white;
+    }
+    .image-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 980px;
+      height: 551px;
+    }
+    .after-img, .before-img {
+      position: absolute;
+      width: 980px;
+      height: 551px;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      transition: clip-path 0.3s ease;
+    }
+    .slider-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: white;
+      z-index: 2;
+      transition: left 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+<section>Avant le slider</section>
+
+<div class="slider-section" id="sliderZone">
+  <div class="container" id="slider">
+    <div class="image-wrapper">
+      <img src="after.jpg" class="after-img">
+      <img src="before.jpg" class="before-img" id="beforeImage">
+      <div class="slider-line" id="sliderLine"></div>
+    </div>
+  </div>
+</div>
+
+<section>Après le slider</section>
+
+<script>
+  let revealPercent = 75;
+  const beforeImg = document.getElementById("beforeImage");
+  const sliderLine = document.getElementById("sliderLine");
+  const slider = document.getElementById("slider");
+
+  beforeImg.style.clipPath = "inset(0 " + (100 - revealPercent) + "% 0 0)";
+  sliderLine.style.left = revealPercent + "%";
+
+  function isSliderScrollZoneActive() {
+    const sliderRect = slider.getBoundingClientRect();
+    const scrollZoneTop = sliderRect.top;
+    // plage sécurisée : de -150 à +150 pixels autour du seuil
+    return scrollZoneTop >= -150 && scrollZoneTop <= 150;
+  }
+
+  window.addEventListener("wheel", (event) => {
+    if (!isSliderScrollZoneActive()) return;
+
+    let moved = false;
+
+    if (event.deltaY > 0 && revealPercent > 0) {
+      revealPercent -= 7;
+      moved = true;
+    } else if (event.deltaY < 0 && revealPercent < 100) {
+      revealPercent += 7;
+      moved = true;
+    }
+
+    revealPercent = Math.max(0, Math.min(100, revealPercent));
+    beforeImg.style.clipPath = "inset(0 " + (100 - revealPercent) + "% 0 0)";
+    sliderLine.style.left = revealPercent + "%";
+
+    if (moved) event.preventDefault();
+  }, { passive: false });
+</script>
+
+</body>
+</html>
