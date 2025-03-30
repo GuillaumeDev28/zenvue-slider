@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ZenVue Slider</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #000000;
+      font-family: sans-serif;
+      overflow-x: hidden;
+    }
+    .slider-section {
+      width: 100%;
+      height: 551px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #000000;
+    }
+    .container {
+      position: relative;
+      width: 980px;
+      height: 551px;
+      overflow: hidden;
+      background: #000000;
+    }
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000000;
+    }
+    .after-img, .before-img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      transition: clip-path 0.3s ease;
+    }
+    .hover-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(38, 38, 38, 0.41);
+      top: 0;
+      left: 0;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .slider-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: white;
+      z-index: 4;
+      transition: left 0.3s ease;
+    }
+    .slider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: ew-resize;
+    }
+    .slider-handle svg {
+      width: 28px;
+      height: 28px;
+    }
+    .slider-handle path {
+      fill: black;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slider-section" id="sliderZone">
+  <div class="container" id="slider">
+    <div class="image-wrapper" id="imageWrapper">
+      <img src="after.jpg" class="after-img">
+      <img src="before.jpg" class="before-img" id="beforeImage">
+      <div class="hover-overlay" id="hoverOverlay"></div>
+      <div class="slider-line" id="sliderLine"></div>
+      <div class="slider-handle" id="sliderHandle">
+        <svg viewBox="0 0 100 100">
+          <path d="M40 50 L60 30 L60 70 Z" />
+          <path d="M60 50 L40 30 L40 70 Z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let revealPercent = 75;
+  const beforeImg = document.getElementById("beforeImage");
+  const sliderLine = document.getElementById("sliderLine");
+  const handle = document.getElementById("sliderHandle");
+  const slider = document.getElementById("slider");
+  const imageWrapper = document.getElementById("imageWrapper");
+  const hoverOverlay = document.getElementById("hoverOverlay");
+
+  function updateSliderPosition(percent) {
+    revealPercent = Math.max(0, Math.min(100, percent));
+    beforeImg.style.clipPath = "inset(0 " + (100 - revealPercent) + "% 0 0)";
+    sliderLine.style.left = revealPercent + "%";
+    handle.style.left = revealPercent + "%";
+  }
+
+  updateSliderPosition(revealPercent);
+
+  let scrollActive = false;
+
+  function isImageExactlyCentered() {
+    const rect = slider.getBoundingClientRect();
+    const viewportCenter = window.innerHeight / 2;
+    const imageCenter = rect.top + rect.height / 2;
+    return Math.abs(imageCenter - viewportCenter) < 10;
+  }
+
+  window.addEventListener("scroll", () => {
+    scrollActive = isImageExactlyCentered();
+  });
+
+  window.addEventListener("wheel", (event) => {
+    if (!scrollActive) return;
+
+    let moved = false;
+    if (event.deltaY > 0 && revealPercent > 0) {
+      revealPercent -= 7;
+      moved = true;
+    } else if (event.deltaY < 0 && revealPercent < 100) {
+      revealPercent += 7;
+      moved = true;
+    }
+
+    if (moved) {
+      event.preventDefault();
+      updateSliderPosition(revealPercent);
+    }
+  }, { passive: false });
+
+  let isDragging = false;
+
+  handle.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    e.preventDefault();
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const sliderRect = slider.getBoundingClientRect();
+    const mouseX = e.clientX - sliderRect.left;
+    const newPercent = (mouseX / sliderRect.width) * 100;
+    updateSliderPosition(newPercent);
+  });
+
+  imageWrapper.addEventListener("mouseenter", () => {
+    hoverOverlay.style.opacity = 1;
+  });
+
+  imageWrapper.addEventListener("mouseleave", () => {
+    hoverOverlay.style.opacity = 0;
+  });
+</script>
+
+</body>
+</html>
